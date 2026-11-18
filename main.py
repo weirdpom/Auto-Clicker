@@ -1,5 +1,6 @@
 
 import tkinter as tk
+from tkinter import messagebox
 import pyautogui
 import keyboard
 import threading
@@ -12,7 +13,9 @@ import time
 clicking = threading.Event()
 shutdown = threading.Event()
 
-click_speed = 0.1  # 10 clicks per second
+click_speed = 1 / 5  # Default: 5 clicks per second
+clicks_per_second = 5
+
 closing = False
 
 
@@ -42,6 +45,59 @@ def start_clicking():
 def stop_clicking():
     clicking.clear()
     update_status()
+
+
+# -----------------------------
+# SETTINGS
+# -----------------------------
+
+def open_settings():
+    settings = tk.Toplevel(root)
+    settings.title("Settings")
+    settings.geometry("300x220")
+    settings.resizable(False, False)
+
+    tk.Label(
+        settings,
+        text="Settings",
+        font=("Arial", 16, "bold")
+    ).pack(pady=12)
+
+    tk.Label(
+        settings,
+        text="Clicks per second (1-100)",
+        font=("Arial", 10)
+    ).pack(pady=5)
+
+    cps_var = tk.IntVar(value=clicks_per_second)
+
+    cps_slider = tk.Scale(
+        settings,
+        from_=1,
+        to=100,
+        orient="horizontal",
+        variable=cps_var,
+        length=230
+    )
+    cps_slider.pack()
+
+    cps_label = tk.Label(
+        settings,
+        text=f"Current CPS: {clicks_per_second}"
+    )
+    cps_label.pack(pady=5)
+
+    def update_cps(value):
+        global click_speed, clicks_per_second
+
+        clicks_per_second = int(float(value))
+        click_speed = 1 / clicks_per_second
+
+        cps_label.config(
+            text=f"Current CPS: {clicks_per_second}"
+        )
+
+    cps_slider.config(command=update_cps)
 
 
 # -----------------------------
@@ -83,8 +139,25 @@ keyboard.add_hotkey("F6", stop_clicking)
 root = tk.Tk()
 
 root.title("Auto Clicker")
-root.geometry("350x220")
-root.minsize(300, 200)
+root.geometry("350x250")
+root.minsize(300, 220)
+
+# Top menu
+menubar = tk.Menu(root)
+
+settings_menu = tk.Menu(menubar, tearoff=0)
+settings_menu.add_command(
+    label="Click Speed (CPS)",
+    command=open_settings
+)
+
+menubar.add_cascade(
+    label="Settings",
+    menu=settings_menu
+)
+
+root.config(menu=menubar)
+
 
 # Main title
 title_label = tk.Label(
@@ -102,6 +175,15 @@ status_label = tk.Label(
     fg="red"
 )
 status_label.pack(pady=5)
+
+# Current speed
+speed_label = tk.Label(
+    root,
+    text="Speed: 5 CPS",
+    font=("Arial", 10)
+)
+speed_label.pack(pady=3)
+
 
 # Button container
 button_frame = tk.Frame(root)
@@ -129,7 +211,22 @@ stop_button.pack(side="left", padx=8)
 
 
 # -----------------------------
-# START BACKGROUND CLICKER
+# UPDATE SPEED LABEL
+# -----------------------------
+
+def refresh_speed_label():
+    if not closing:
+        speed_label.config(
+            text=f"Speed: {clicks_per_second} CPS"
+        )
+        root.after(100, refresh_speed_label)
+
+
+refresh_speed_label()
+
+
+# -----------------------------
+# BACKGROUND CLICKER
 # -----------------------------
 
 click_thread = threading.Thread(
