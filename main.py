@@ -5,6 +5,21 @@ import pyautogui
 import keyboard
 import threading
 import time
+import os
+import sys
+
+# -----------------------------
+# RESOURCE PATH (PYINSTALLER)
+# -----------------------------
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+    return os.path.join(base_path, relative_path)
+
 
 # -----------------------------
 # VARIABLES
@@ -56,6 +71,8 @@ def open_settings():
     settings.title("Settings")
     settings.geometry("300x220")
     settings.resizable(False, False)
+
+    settings.iconbitmap(icon_path)
 
     tk.Label(
         settings,
@@ -137,6 +154,11 @@ keyboard.add_hotkey("F6", stop_clicking)
 # -----------------------------
 
 root = tk.Tk()
+
+# Application icon (PyInstaller compatible)
+icon_path = resource_path("mouse.ico")
+
+root.iconbitmap(icon_path)
 
 root.title("Auto Clicker")
 root.geometry("350x250")
