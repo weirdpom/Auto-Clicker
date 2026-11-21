@@ -22,3 +22,7 @@ Grab the latest .exe from [Releases](../../releases).
 ## Build the exe
 
     pyinstaller AutoClicker.spec
+	
+## License
+
+This project is licensed under the [0BSD License](LICENSE).
